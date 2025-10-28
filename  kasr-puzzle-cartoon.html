@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>پازل کسرها | با تصاویر کارتونی</title>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&family=Baloo+2:wght@600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --red: #ff5252;
+      --blue: #448aff;
+      --green: #66bb6a;
+      --yellow: #ffa726;
+      --purple: #ab47bc;
+      --orange: #ff7043;
+      --bg: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      --card-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      --glow: 0 0 20px rgba(255,255,255,0.6);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 15px;
+      position: relative;
+    }
+
+    .bg-bubbles {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; overflow: hidden; z-index: 0;
+    }
+    .bubble {
+      position: absolute;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50%;
+      animation: float 6s infinite ease-in-out;
+      opacity: 0.7;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      margin: 20px 0;
+      animation: fadeIn 1s ease;
+    }
+    h1 {
+      font-family: 'Baloo 2', cursive;
+      font-size: 2.8rem;
+      color: #1a237e;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 8px;
+    }
+    .author {
+      font-size: 1.1rem;
+      color: #555;
+      font-weight: 500;
+    }
+
+    .keys {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .key {
+      flex: 1;
+      min-width: 160px;
+      padding: 16px;
+      border-radius: 20px;
+      color: white;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .key::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: 0.5s;
+    }
+    .key:hover::before { left: 100%; }
+    .key:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+    .key.active { transform: scale(1.1); box-shadow: var(--glow), var(--card-shadow); }
+
+    #key-proper { background: var(--red); }
+    #key-improper { background: var(--blue); }
+    #key-whole { background: var(--green); }
+    #key-mixed { background: var(--yellow); }
+
+    .status {
+      text-align: center;
+      margin: 15px 0;
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    #timer { color: var(--orange); font-size: 1.6rem; }
+    #message { min-height: 32px; font-weight: 600; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 14px;
+      max-width: 850px;
+      margin: 25px auto;
+      padding: 15px;
+      background: rgba(255,255,255,0.7);
+      border-radius: 25px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+    .cell {
+      background: white;
+      border-radius: 20px;
+      height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+      padding: 8px;
+    }
+    .cell:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    .cell.correct { animation: bounce 0.5s; }
+    .cell.incorrect { animation: shake 0.4s; }
+
+    .cartoon {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 4px;
+    }
+    .fraction-label {
+      font-size: 11px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .actions {
+      text-align: center;
+      margin: 20px 0;
+    }
+    button {
+      padding: 14px 28px;
+      margin: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+    }
+    button:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+    #helpBtn { background: var(--purple); color: white; }
+    #restartBtn { background: var(--orange); color: white; }
+
+    canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 1000; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-bubbles" id="bubbles"></div>
+  <canvas id="confetti"></canvas>
+
+  <div class="container">
+    <header>
+      <h1>پازل کسرها</h1>
+      <div class="author">طراحی شده با عشق توسط بدر</div>
+    </header>
+
+    <div class="keys">
+      <div id="key-proper" class="key">کسر کوچک‌تر از واحد</div>
+      <div id="key-improper" class="key">کسر بزرگ‌تر از واحد</div>
+      <div id="key-whole" class="key">کسر برابر واحد</div>
+      <div id="key-mixed" class="key">عدد مخلوط</div>
+    </div>
+
+    <div class="status">
+      <div id="timer">زمان: ۳:۰۰</div>
+      <div id="message"></div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="actions">
+      <button id="helpBtn">راهنما</button>
+      <button id="restartBtn">شروع دوباره</button>
+    </div>
+  </div>
+
+  <!-- صداها -->
+  <audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+  <audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-383.mp3"></audio>
+  <audio id="winSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3"></audio>
+
+  <script>
+    // SVGهای کارتونی (داخلی)
+    const cartoons = {
+      pizza: `<svg viewBox="0 0 100 100" class="cartoon"><circle cx="50" cy="50" r="40" fill="#ff9800"/><path d="M20 40 Q50 70 80 40" fill="#f44336" stroke="#d32f2f" stroke-width="3"/><circle cx="35" cy="45" r="5" fill="#fff"/><circle cx="50" cy="50" r="5" fill="#fff"/><circle cx="65" cy="45" r="5" fill="#fff"/></svg>`,
+      cake: `<svg viewBox="0 0 100 100" class="cartoon"><rect x="20" y="50" width="60" height="40" rx="5" fill="#ffcc80"/><rect x="20" y="35" width="60" height="15" fill="#ff8a65"/><circle cx="30" cy="30" r="5" fill="#e91e63"/><circle cx="50" cy="30" r="5" fill="#9c27b0"/><circle cx="70" cy="30" r="5" fill="#2196f3"/></svg>`,
+      juice: `<svg viewBox="0 0 100 100" class="cartoon"><path d="M30 30 L70 30 L65 70 L35 70 Z" fill="#ff9800"/><path d="M35 25 Q50 15 65 25" fill="#ffcc80"/><circle cx="50" cy="50" r="15" fill="#ffeb3b" opacity="0.7"/></svg>`,
+      chocolate: `<svg viewBox="0 0 100 100" class="cartoon"><rect x="25" y="35" width="50" height="40" rx="8" fill="#8d6e63"/><path d="M30 45 L40 55 L35 65 M50 45 L60 55 L55 65 M70 45 L60 55 L65 65" stroke="#6d4c41" stroke-width="3"/></svg>`,
+      apple: `<svg viewBox="0 0 100 100" class="cartoon"><path d="M50 20 Q30 40 35 65 Q40 85 50 90 Q60 85 65 65 Q70 40 50 20" fill="#f44336"/><path d="M45 15 Q50 10 55 15" fill="none" stroke="#4caf50" stroke-width="4"/><circle cx="45" cy="45" r="5" fill="#fff"/></svg>`,
+      donut: `<svg viewBox="0 0 100 100" class="cartoon"><circle cx="50" cy="50" r="35" fill="#d7ccc8"/><circle cx="50" cy="50" r="20" fill="#8d6e63"/><circle cx="35" cy="40" r="5" fill="#ff5252"/><circle cx="50" cy="45" r="5" fill="#ffeb3b"/><circle cx="65" cy="40" r="5" fill="#66bb6a"/></svg>`
+    };
+
+    // داده‌های کسرها + تصویر
+    const fractions = [
+      // کوچک‌تر از واحد (proper)
+      {num: 1, den: 2, type: 'proper', img: 'pizza', label: '۱/۲ پیتزا'},
+      {num: 3, den: 4, type: 'proper', img: 'cake', label: '۳/۴ کیک'},
+      {num: 2, den: 5, type: 'proper', img: 'juice', label: '۲/۵ آبمیوه'},
+      {num: 1, den: 3, type: 'proper', img: 'apple', label: '۱/۳ سیب'},
+      {num: 4, den: 7, type: 'proper', img: 'chocolate', label: '۴/۷ شکلات'},
+      {num: 5, den: 9, type: 'proper', img: 'donut', label: '۵/۹ دونات'},
+
+      // بزرگ‌تر از واحد (improper)
+      {num: 5, den: 3, type: 'improper', img: 'pizza', label: '۵/۳ پیتزا'},
+      {num: 7, den: 4, type: 'improper', img: 'cake', label: '۷/۴ کیک'},
+      {num: 8, den: 5, type: 'improper', img: 'juice', label: '۸/۵ آبمیوه'},
+      {num: 11, den: 6, type: 'improper', img: 'apple', label: '۱۱/۶ سیب'},
+      {num: 9, den: 7, type: 'improper', img: 'chocolate', label: '۹/۷ شکلات'},
+      {num: 13, den: 8, type: 'improper', img: 'donut', label: '۱۳/۸ دونات'},
+
+      // برابر واحد
+      {num: 2, den: 2, type: 'whole', img: 'pizza', label: '۱ پیتزا کامل'},
+      {num: 3, den: 3, type: 'whole', img: 'cake', label: '۱ کیک کامل'},
+      {num: 4, den: 4, type: 'whole', img: 'juice', label: '۱ لیوان کامل'},
+      {num: 5, den: 5, type: 'whole', img: 'apple', label: '۱ سیب کامل'},
+      {num: 6, den: 6, type: 'whole', img: 'chocolate', label: '۱ شکلات کامل'},
+      {num: 1, den: 1, type: 'whole', img: 'donut', label: '۱ دونات کامل'},
+
+      // عدد مخلوط
+      {num: 1, den: 3, whole: 2, type: 'mixed', img: 'pizza', label: '۲ و ۱/۳ پیتزا'},
+      {num: 1, den: 4, whole: 3, type: 'mixed', img: 'cake', label: '۳ و ۱/۴ کیک'},
+      {num: 2, den: 5, whole: 1, type: 'mixed', img: 'juice', label: '۱ و ۲/۵ آبمیوه'},
+      {num: 3, den: 8, whole: 4, type: 'mixed', img: 'apple', label: '۴ و ۳/۸ سیب'},
+      {num: 1, den: 6, whole: 5, type: 'mixed', img: 'chocolate', label: '۵ و ۱/۶ شکلات'},
+      {num: 5, den: 7, whole: 2, type: 'mixed', img: 'donut', label: '۲ و ۵/۷ دونات'}
+    ];
+
+    let selectedType = null;
+    let timer;
+    let timeLeft = 180;
+    let gridData = [];
+    let gameActive = true;
+
+    const grid = document.getElementById('grid');
+    const message = document.getElementById('message');
+    const timerDisplay = document.getElementById('timer');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+    const winSound = document.getElementById('winSound');
+
+    const colors = {
+      proper: '#ff5252',
+      improper: '#448aff',
+      whole: '#66bb6a',
+      mixed: '#ffa726'
+    };
+
+    function createBubbles() {
+      const bubblesContainer = document.getElementById('bubbles');
+      bubblesContainer.innerHTML = '';
+      for (let i = 0; i < 12; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.style.width = bubble.style.height = `${Math.random() * 60 + 20}px`;
+        bubble.style.left = `${Math.random() * 100}%`;
+        bubble.style.animationDelay = `${Math.random() * 5}s`;
+        bubble.style.animationDuration = `${Math.random() * 8 + 5}s`;
+        bubblesContainer.appendChild(bubble);
+      }
+    }
+
+    function startGame() {
+      gameActive = true;
+      clearInterval(timer);
+      timeLeft = 180;
+      timerDisplay.textContent = `زمان: ۳:۰۰`;
+      message.textContent = '';
+      selectedType = null;
+      document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+      gridData = [...fractions].sort(() => Math.random() - 0.5);
+      renderGrid();
+      startTimer();
+      createBubbles();
+    }
+
+    function renderGrid() {
+      grid.innerHTML = '';
+      gridData.forEach((frac, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.index = i;
+
+        cell.innerHTML = `
+          ${cartoons[frac.img]}
+          <div class="fraction-label">${frac.label}</div>
+        `;
+
+        cell.addEventListener('click', () => colorCell(i));
+        grid.appendChild(cell);
+      });
+    }
+
+    function colorCell(index) {
+      if (!gameActive || !selectedType) {
+        showMessage('ابتدا یک نوع کسر انتخاب کنید!', '#d32f2f');
+        return;
+      }
+
+      const cell = grid.children[index];
+      const frac = gridData[index];
+      const correctType = frac.type;
+
+      cell.style.backgroundColor = colors[selectedType];
+      cell.style.transform = 'scale(0.95)';
+      setTimeout(() => cell.style.transform = 'scale(1)', 150);
+
+      if (selectedType === correctType) {
+        cell.classList.add('correct');
+        playSound(correctSound);
+        showMessage('عالی! درست بود', '#2e7d32');
+      } else {
+        cell.classList.add('incorrect');
+        playSound(wrongSound);
+        showMessage('اشتباه! دوباره امتحان کن', '#c62828');
+        setTimeout(() => {
+          cell.style.backgroundColor = 'white';
+          cell.classList.remove('incorrect');
+        }, 800);
+      }
+
+      setTimeout(checkWin, 300);
+    }
+
+    function checkWin() {
+      if (!gameActive) return;
+      const cells = grid.children;
+      for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        const frac = gridData[i];
+        const bg = cell.style.backgroundColor;
+        const expected = colors[frac.type];
+        if (!bg || rgbToHex(bg) !== rgbToHex(expected)) return;
+      }
+      winGame();
+    }
+
+    function winGame() {
+      gameActive = false;
+      clearInterval(timer);
+      playSound(winSound);
+      showMessage('تبریک! همه را درست زدی!', '#2e7d32');
+      setTimeout(() => launchConfetti(), 500);
+    }
+
+    function rgbToHex(rgb) {
+      if (!rgb) return '';
+      const [r, g, b] = rgb.match(/\d+/g);
+      return "#" + ((1 << 24) + (parseInt(r) << 16) + (parseInt(g) << 8) + parseInt(b)).toString(16).slice(1);
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+        const secs = String(timeLeft % 60).padStart(2, '0');
+        timerDisplay.textContent = `زمان: ${mins}:${secs}`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          gameActive = false;
+          showMessage('زمان تمام شد!', '#c62828');
+        }
+      }, 1000);
+    }
+
+    function showMessage(text, color) {
+      message.textContent = text;
+      message.style.color = color;
+      setTimeout(() => { if (message.textContent === text) message.textContent = ''; }, 2200);
+    }
+
+    function playSound(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+
+    function launchConfetti() {
+      const canvas = document.getElementById('confetti');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const confetti = [];
+      const colors = ['#ff5252', '#448aff', '#66bb6a', '#ffa726', '#ab47bc'];
+
+      for (let i = 0; i < 300; i++) {
+        confetti.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 2,
+          d: Math.random() * 8 + 3,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          tilt: Math.random() * 10 - 5,
+          tiltAngle: 0,
+          tiltAngleIncrement: Math.random() * 0.1 + 0.05
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confetti.forEach((c, i) => {
+          c.tiltAngle += c.tiltAngleIncrement;
+          c.y += c.d;
+          c.tilt = Math.sin(c.tiltAngle) * 15;
+
+          if (c.y > canvas.height) confetti.splice(i, 1);
+
+          ctx.beginPath();
+          ctx.lineWidth = c.r;
+          ctx.strokeStyle = c.color;
+          ctx.moveTo(c.x + c.tilt + c.r / 2, c.y);
+          ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r / 2);
+          ctx.stroke();
+        });
+
+        if (confetti.length) requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    document.querySelectorAll('.key').forEach(key => {
+      key.addEventListener('click', () => {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+        key.classList.add('active');
+        selectedType = key.id.split('-')[1];
+      });
+    });
+
+    document.getElementById('helpBtn').addEventListener('click', () => {
+      alert(`پازل کسرها با تصاویر کارتونی!\n\n` +
+        `کسر کوچک‌تر از واحد: کمتر از یک کل (مثل ۱/۲ پیتزا)\n` +
+        `کسر بزرگ‌تر از واحد: بیشتر از یک کل (مثل ۵/۳ پیتزا)\n` +
+        `کسر برابر واحد: دقیقاً یک کل (مثل ۱ پیتزا کامل)\n` +
+        `عدد مخلوط: چند کل + کسر (مثل ۲ و ۱/۳ پیتزا)\n\n` +
+        `رنگ‌ها:\n` +
+        `قرمز: کوچک‌تر از واحد\n` +
+        `آبی: بزرگ‌تر از واحد\n` +
+        `سبز: برابر واحد\n` +
+        `زرد: عدد مخلوط\n\n` +
+        `هدف: هر تصویر را با رنگ درست رنگ‌آمیزی کنید!`);
+    });
+
+    document.getElementById('restartBtn').addEventListener('click', startGame);
+
+    window.onload = startGame;
+  </script>
+</body>
+</html>
